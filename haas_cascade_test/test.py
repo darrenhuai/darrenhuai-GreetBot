@@ -1,10 +1,53 @@
 # import numpy as np
 import cv2
 import timeit
+from pyfirmata import Arduino, SERVO, util
+from time import sleep
+from playsound import playsound
 
 face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 eye_cascade = cv2.CascadeClassifier('haarcascade_eye.xml')
 smile_cascade = cv2.CascadeClassifier('haarcascade_smile.xml')
+
+
+port = '/dev/cu.usbmodem144301'
+pin=9
+board=Arduino(port)
+
+board.digital[pin].mode=SERVO
+
+
+
+def rotateservo(pin, angle):
+        board.digital[pin].write(angle)
+        sleep(.015)
+
+for k in range(0,90):
+    rotateservo(pin,k)      
+
+def signal():
+    #while True:
+        #x=input("input: ")
+        #rotateservo(pin,45)
+        #sleep(1)
+        #if x=="1":
+        # for playing note.mp3 file
+        
+        #print('playing sound using  playsound') 
+            for i in range(90,180):
+                rotateservo(pin,i)
+            playsound('/Users/krishshah/Desktop/tester.m4a')
+            sleep(2)
+        #1print("now")
+            h = 180
+            while h!= 90:
+                rotateservo(pin,h)
+                h-= 1
+
+            sleep(10)
+
+
+
 
 def main():
 
@@ -44,7 +87,7 @@ def main():
     cv2.destroyAllWindows()
 
 def main1():
-    video_capture = cv2.VideoCapture(0)
+    video_capture = cv2.VideoCapture(1)
     smile_queue = []
     while video_capture.isOpened():
     # Captures video_capture frame by frame
@@ -63,6 +106,7 @@ def main1():
         smile_queue.append(is_smiling)
         if len([True for s in smile_queue if s]) > 5:
             print('is smiling')
+            signal()
             smile_queue = []
 
 
