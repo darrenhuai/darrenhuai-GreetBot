@@ -1,92 +1,37 @@
 # import numpy as np
 import cv2
 import timeit
+import sys
 from pyfirmata import Arduino, SERVO, util
 from time import sleep
 from playsound import playsound
 
+# Initializing Cascade Classifiers
 face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 eye_cascade = cv2.CascadeClassifier('haarcascade_eye.xml')
 smile_cascade = cv2.CascadeClassifier('haarcascade_smile.xml')
 
-
+# Initializing Arduino Port
 port = '/dev/cu.usbmodem144301'
 pin=9
-board=Arduino(port)
 
-board.digital[pin].mode=SERVO
+if len(sys.argv) == 1:
+    board=Arduino(port)
+    board.digital[pin].mode=SERVO
 
 
 
 def rotateservo(pin, angle):
-        board.digital[pin].write(angle)
-        sleep(.015)
+    if sys.argv[1] == '-n':
+        return
+    
+    board.digital[pin].write(angle)
+    sleep(.015)
 
-for k in range(0,90):
-    rotateservo(pin,k)      
-
-def signal():
-    #while True:
-        #x=input("input: ")
-        #rotateservo(pin,45)
-        #sleep(1)
-        #if x=="1":
-        # for playing note.mp3 file
-        
-        #print('playing sound using  playsound') 
-            for i in range(90,180):
-                rotateservo(pin,i)
-            playsound('/Users/krishshah/Desktop/tester.m4a')
-            sleep(2)
-        #1print("now")
-            h = 180
-            while h!= 90:
-                rotateservo(pin,h)
-                h-= 1
-
-            sleep(10)
-
-
-
+    for k in range(0,90):
+        rotateservo(pin,k)      
 
 def main():
-
-    cap = cv2.VideoCapture(1)
-
-    epoch = 0
-
-    while True:
-        ret, img = cap.read()
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        faces = face_cascade.detectMultiScale(gray, 1.3, 5)
-        
-        if epoch % 10 == 0:
-            print(f'Number of Faces: {len(faces)}')
-        
-        for (x,y,w,h) in faces:
-            cv2.rectangle(img, (x,y), (x+w,y+h),(255,0,0),2)
-            roi_gray = gray[y:y+h, x:x+w]
-            roi_color = img[y:y+h, x:x+w]
-
-            smile = smile_cascade.detectMultiScale(roi_gray)
-            for (ex,ey,ew,eh) in smile:
-                cv2.rectangle(roi_color,(ex,ey),(ex+ew,ey+eh),(0,0,255),2)
-
-            # eyes = eye_cascade.detectMultiScale(roi_gray)
-            # for (ex,ey,ew,eh) in eyes:
-            #     cv2.rectangle(roi_color,(ex,ey),(ex+ew,ey+eh),(0,255,0),2)
-
-        cv2.imshow('img',img)
-        k = cv2.waitKey(30) & 0xff
-        if k == 27:
-            break
-
-        epoch += 1
-
-    cap.release()
-    cv2.destroyAllWindows()
-
-def main1():
     video_capture = cv2.VideoCapture(1)
     smile_queue = []
     while video_capture.isOpened():
@@ -121,6 +66,27 @@ def main1():
     video_capture.release()                                
     cv2.destroyAllWindows()
 
+def signal():
+    #while True:
+        #x=input("input: ")
+        #rotateservo(pin,45)
+        #sleep(1)
+        #if x=="1":
+        # for playing note.mp3 file
+        
+        #print('playing sound using  playsound') 
+            for i in range(90,180):
+                rotateservo(pin,i)
+            playsound('/Users/krishshah/Desktop/tester.m4a')
+            sleep(2)
+        #1print("now")
+            h = 180
+            while h!= 90:
+                rotateservo(pin,h)
+                h-= 1
+
+            sleep(10)
+
 '''
 detectMultiScale() recommended parameters
 https://stackoverflow.com/questions/20801015/recommended-values-for-opencv-detectmultiscale-parameters
@@ -145,5 +111,5 @@ def detect(gray, frame):
     return frame, is_smiling
 
 if __name__ == '__main__':
-    # main()
-    main1()
+    main()
+    # main1()
