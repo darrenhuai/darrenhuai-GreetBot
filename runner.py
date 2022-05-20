@@ -7,6 +7,7 @@ import argparse
 from pyfirmata import Arduino, SERVO, util
 from time import sleep
 from playsound import playsound
+from random import randint
 
 import torch
 
@@ -32,19 +33,22 @@ smile_cascade = cv2.CascadeClassifier(haar_path + 'haarcascade_smile.xml')
 # Initializing Arduino Port
 port = '/dev/cu.usbmodem144301'
 pin=9
-board = None 
+#board = None 
+board=Arduino(port)
+board.digital[pin].mode=SERVO
 arduino = False  
 
 def main(no_arduino=False):
     # If arduino is enabled, initialize
-    arduino = not no_arduino
-    print('no_arduino', no_arduino)
-    print('arduino', arduino)
-    if arduino:
-        board=Arduino(port)
-        board.digital[pin].mode=SERVO  
+    #arduino = not no_arduino
+    #print('no_arduino', no_arduino)
+    #print('arduino', arduino)
+    #if arduino:
+        #print("arduino initilaized")
+        #board=Arduino(port)
+        #board.digital[pin].mode=SERVO  
 
-    video_capture = cv2.VideoCapture(0)
+    video_capture = cv2.VideoCapture(1)
     smile_queue, tt_queue = [], []
     while video_capture.isOpened():
     # Captures video_capture frame by frame
@@ -63,9 +67,9 @@ def main(no_arduino=False):
         if len(tt_queue) > 30:
             tt_queue.pop(0)
         
-        smile_queue.append(is_smiling)
+        #smile_queue.append(is_smiling)
         tt_queue.append(is_tt)
-        if len([True for s in smile_queue if s]) > 5 or is_tt:
+        if len([True for s in smile_queue if s]) > 2 or is_tt:
             print('is smiling')
             signal()
             smile_queue, tt_queue = [], []
@@ -82,9 +86,24 @@ def main(no_arduino=False):
     video_capture.release()                                
     cv2.destroyAllWindows()
 
+
+def rotateservo(pin, angle):
+    #if not arduino:
+       # return
+    
+    board.digital[pin].write(angle)
+    sleep(.015)
+
+
+for k in range(0,60):
+    rotateservo(pin,k) 
+
+
 def signal():
-    if not arduino:
-        return
+    print("now")
+    #if not arduino:
+     #   print("stopping")
+     #   return
 
     #while True:
         #x=input("input: ")
@@ -94,27 +113,28 @@ def signal():
         # for playing note.mp3 file
         
         #print('playing sound using  playsound') 
-    for i in range(90,180):
+    for i in range(60,125):
         rotateservo(pin,i)
-    playsound('/Users/krishshah/Desktop/tester.m4a')
+
+    soundint = randint(1,14)
+    print(soundint)
+    filename = '/Users/krishshah/Desktop/rose_'
+    filename += str(soundint)
+    filename += '.m4a'
+    playsound(filename)
+
     sleep(2)
-        #1print("now")
-    h = 180
-    while h!= 90:
+    print("hello")
+    h = 125
+    while h!= 60:
         rotateservo(pin,h)
         h-= 1
 
     sleep(10)
 
-def rotateservo(pin, angle):
-    if not arduino:
-        return
-    
-    board.digital[pin].write(angle)
-    sleep(.015)
 
-    for k in range(0,90):
-        rotateservo(pin,k) 
+
+
 
 '''
 detectMultiScale() recommended parameters
