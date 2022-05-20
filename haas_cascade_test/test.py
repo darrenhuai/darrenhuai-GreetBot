@@ -32,7 +32,7 @@ def rotateservo(pin, angle):
         rotateservo(pin,k)      
 
 def main():
-    video_capture = cv2.VideoCapture(1)
+    video_capture = cv2.VideoCapture(0)
     smile_queue = []
     while video_capture.isOpened():
     # Captures video_capture frame by frame
