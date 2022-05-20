@@ -10,8 +10,9 @@ from playsound import playsound
 
 import torch
 
-# Model
-model = torch.hub.load('ultralytics/yolov5', 'custom', path='./best.pt')  # or yolov5n - yolov5x6, custom
+# YOLO v5 Models
+tt_model = torch.hub.load('ultralytics/yolov5', 'custom', path='./best.pt')  # or yolov5n - yolov5x6, custom
+mask_model = torch.hub.load('ultralytics/yolov5', 'custom', path='./mask_yolov5.pt')
 
 # Images
 img = './1.png'  # or file, Path, PIL, OpenCV, numpy, list
@@ -62,11 +63,14 @@ def main(no_arduino=False):
         canvas, is_tt = detect_tt(gray, frame)
         if len(tt_queue) > 30:
             tt_queue.pop(0)
+
+        # Detect if mask if being worn
+        canvas, is_mask = detect_mask(gray, frame)
         
         smile_queue.append(is_smiling)
         tt_queue.append(is_tt)
-        if len([True for s in smile_queue if s]) > 5 or is_tt:
-            print('is smiling')
+        if len([True for s in smile_queue if s]) > 5 or is_tt or is_mask:
+            # print('is smiling')
             signal()
             smile_queue, tt_queue = [], []
 
@@ -132,12 +136,13 @@ def detect_smile(gray, frame):
         for (sx, sy, sw, sh) in smiles:
             cv2.rectangle(roi_color, (sx, sy), ((sx + sw), (sy + sh)), (160, 231, 125), 2)
             is_smiling = True
+            print('is smiling!')
  
     return frame, is_smiling
 
 def detect_tt(gray, frame):
     
-    results = model(frame)
+    results = tt_model(frame)
     tt_detections = results.pandas().xyxy[0].to_json(orient="records")
 
     # print(tt_detections)
@@ -146,6 +151,20 @@ def detect_tt(gray, frame):
         print('found tt!')
 
     return frame, is_tt
+
+def detect_mask(gray, frame):
+    results = mask_model(frame)
+    mask_detections = results.pandas().xyxy# .to_json(orient="records")
+    
+    is_mask = False
+
+    for mask_detection in mask_detections:
+        if mask_detection.name.size > 0 and mask_detection.name.iloc[0] == 'with_mask':
+            is_mask = True
+            print('found mask!')
+            break
+
+    return frame, is_mask
 
 def parse_opt():
     parser = argparse.ArgumentParser()
