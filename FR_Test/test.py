@@ -13,7 +13,7 @@ def generate_encodings(directory):
         f = os.path.join(directory, filename)
         if os.path.isfile(f):
             print(names)
-            _, enc = find_face(fr.load_image_file(f))
+            _, enc, _ = find_face(fr.load_image_file(f))
             encodings.append(enc)
             names.append(filename.split('.')[0])
             count += 1
@@ -34,13 +34,16 @@ def main():
             continue
         
         # imgRudy, encRudy = find_face(fr.load_image_file('./pledges/rudy.JPG'))
-        img, enc = find_face(frame)
+        frame, enc, (top, right, bottom, left) = find_face(frame)
         
         results = fr.face_distance(encodings, enc)
         # print(results)
         # print(names)
-        match_i = np.argmin(results)
+        match_i, similarity = np.argmin(results), 1 - np.min(results)
+        
         print(names[match_i])
+        
+        cv2.putText(frame, f'{names[match_i]} ({100 * similarity:.2f}%)', (left, top - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36,255,12), 2)
 
         # imgTest, encTest = find_face(fr.load_image_file('./akshay1.jpg'))
 
@@ -87,12 +90,12 @@ def has_face(img):
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     return len(fr.face_locations(img)) > 0
 
-def find_face(img):
+def find_face(img, name=None):
     '''
     Returns the face (cv2 image, encoding) taking up the largest area in the image.
     '''
     ## Load Face
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     face_locations = fr.face_locations(img)
     if len(face_locations) == 0:
         return None, None
@@ -105,7 +108,7 @@ def find_face(img):
     encoding = fr.face_encodings(img)[max_i]
     top, right, bottom, left = face_locations[max_i]
     cv2.rectangle(img, (left, top), (right, bottom), (255,0,255), 2)
-    return img, encoding
+    return img, encoding, (top, right, bottom, left)
 
 if __name__ == '__main__':
     main()
