@@ -1,10 +1,13 @@
 import os
 import cv2
 import numpy as np
+import pickle
 import face_recognition as fr
 
 def main():
-    encodings, names = generate_encodings('./pledges/')
+    # encodings, names = generate_encodings('./pledges/')
+    with open('pledge_encodings.pkl', 'rb') as f:
+        encodings, names = pickle.load(f)
     print('finished generating encodings')
     print(encodings)
     video_capture = cv2.VideoCapture(0)
