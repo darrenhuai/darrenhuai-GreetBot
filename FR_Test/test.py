@@ -18,11 +18,11 @@ arduino = False
 
 def main():
     # encodings, names = generate_encodings('./pledges/')
-    with open('pledge_encodings.pkl', 'rb') as f:
+    with open('active_encodings.pkl', 'rb') as f:
         encodings, names = pickle.load(f)
     print('finished generating encodings')
     print(encodings)
-    video_capture = cv2.VideoCapture(1)
+    video_capture = cv2.VideoCapture(0)
     while video_capture.isOpened():
     # Captures video_capture frame by frame
         _, frame = video_capture.read()
@@ -39,7 +39,8 @@ def main():
         # print(names)
         match_i, similarity = np.argmin(results), 1 - np.min(results)
         
-        if similarity < 0.5:
+        if similarity < 0.6:
+            cv2.imshow('Video', frame)
             continue
 
         # print(names[match_i])
@@ -49,7 +50,7 @@ def main():
         # imgTest, encTest = find_face(fr.load_image_file('./akshay1.jpg'))
 
 
-        signal(names[match_i])
+        # signal(names[match_i])
 
         
 
@@ -135,18 +136,20 @@ def signal(match):
 
     sleep(10)
 
-def generate_encodings(directory):
+def generate_encodings(directory, verbose=False):
     '''
     Given a directory path, returns a list of the encodings and names of the directory.
     '''
     encodings, names = [], []
-    for filename in os.listdir(directory):
+    length = len(os.listdir(directory))
+    for i,filename in enumerate(os.listdir(directory)):
         f = os.path.join(directory, filename)
         if os.path.isfile(f):
-            print(names)
+            print(filename)
             _, enc, _ = find_face(fr.load_image_file(f))
             encodings.append(enc)
             names.append(filename.split('.')[0])
+        printProgressBar (iteration=i+1, total=length)
     return encodings, names
 
 def has_face(img):
@@ -175,6 +178,27 @@ def find_face(img, name=None):
     top, right, bottom, left = face_locations[max_i]
     cv2.rectangle(img, (left, top), (right, bottom), (255,0,255), 2)
     return img, encoding, (top, right, bottom, left)
+
+def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
+    """
+    Call in a loop to create terminal progress bar
+    @params:
+        iteration   - Required  : current iteration (Int)
+        total       - Required  : total iterations (Int)
+        prefix      - Optional  : prefix string (Str)
+        suffix      - Optional  : suffix string (Str)
+        decimals    - Optional  : positive number of decimals in percent complete (Int)
+        length      - Optional  : character length of bar (Int)
+        fill        - Optional  : bar fill character (Str)
+        printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
+    """
+    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
+    filledLength = int(length * iteration // total)
+    bar = fill * filledLength + '-' * (length - filledLength)
+    print(f'\r{prefix} |{bar}| {percent}% {suffix}', end = printEnd)
+    # Print New Line on Complete
+    if iteration == total: 
+        print()
 
 if __name__ == '__main__':
     main()
