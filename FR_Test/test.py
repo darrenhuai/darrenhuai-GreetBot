@@ -3,6 +3,18 @@ import cv2
 import numpy as np
 import pickle
 import face_recognition as fr
+from pyfirmata import Arduino, SERVO, util
+from time import sleep
+from playsound import playsound
+from random import randint
+
+
+port = '/dev/cu.usbmodem144401'
+pin=9
+#board = None 
+board=Arduino(port)
+board.digital[pin].mode=SERVO
+arduino = False  
 
 def main():
     # encodings, names = generate_encodings('./pledges/')
@@ -10,7 +22,7 @@ def main():
         encodings, names = pickle.load(f)
     print('finished generating encodings')
     print(encodings)
-    video_capture = cv2.VideoCapture(0)
+    video_capture = cv2.VideoCapture(1)
     while video_capture.isOpened():
     # Captures video_capture frame by frame
         _, frame = video_capture.read()
@@ -37,11 +49,16 @@ def main():
         # imgTest, encTest = find_face(fr.load_image_file('./akshay1.jpg'))
 
 
+        signal(names[match_i])
+
+        
+
          #results = fr.compare_faces([enc], encTest)
-        if results[0] == False:
-            print('no match')
-        else:
-            print('match')
+        # if results[0] == False:
+        #     print('no match')
+        # else:
+        #     signal()
+        #     print('match')
 
         # Displays the result on camera feed                    
         cv2.imshow('Video', frame)
@@ -71,6 +88,52 @@ def test():
     cv2.imshow('imgTest', imgTest)
 
     cv2.waitKey(0)
+
+
+def rotateservo(pin, angle):
+    #if not arduino:
+       # return
+    
+    board.digital[pin].write(angle)
+    sleep(.015)
+
+
+for k in range(0,60):
+   rotateservo(pin,k) 
+
+
+def signal(match):
+    print(match)
+    #if not arduino:
+     #   print("stopping")
+     #   return
+
+    #while True:
+        #x=input("input: ")
+        #rotateservo(pin,45)
+        #sleep(1)
+        #if x=="1":
+        # for playing note.mp3 file
+        
+        #print('playing sound using  playsound') 
+    for i in range(60,115):
+        rotateservo(pin,i)
+
+    #soundint = randint(1,14)
+    #print(soundint)
+    filename = '/Users/krishshah/Desktop/BES22/'
+    filename += match
+    filename += '.m4a'
+    playsound(filename)
+
+    sleep(2)
+    print("hello")
+    h = 115
+    while h!= 60:
+        rotateservo(pin,h)
+        h-= 1
+
+    sleep(10)
 
 def generate_encodings(directory):
     '''
