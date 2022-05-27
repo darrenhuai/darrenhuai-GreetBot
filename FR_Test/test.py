@@ -3,27 +3,10 @@ import cv2
 import numpy as np
 import face_recognition as fr
 
-def generate_encodings(directory):
-    '''
-    Given a directory path, returns a list of the encodings and names of the directory.
-    '''
-    count = 0
-    encodings, names = [], []
-    for filename in os.listdir(directory):
-        f = os.path.join(directory, filename)
-        if os.path.isfile(f):
-            print(names)
-            _, enc, _ = find_face(fr.load_image_file(f))
-            encodings.append(enc)
-            names.append(filename.split('.')[0])
-            count += 1
-            if count == 0:
-                break
-    return encodings, names
-
 def main():
     encodings, names = generate_encodings('./pledges/')
     print('finished generating encodings')
+    print(encodings)
     video_capture = cv2.VideoCapture(0)
     while video_capture.isOpened():
     # Captures video_capture frame by frame
@@ -41,7 +24,10 @@ def main():
         # print(names)
         match_i, similarity = np.argmin(results), 1 - np.min(results)
         
-        print(names[match_i])
+        if similarity < 0.5:
+            continue
+
+        # print(names[match_i])
         
         cv2.putText(frame, f'{names[match_i]} ({100 * similarity:.2f}%)', (left, top - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36,255,12), 2)
 
@@ -82,6 +68,20 @@ def test():
     cv2.imshow('imgTest', imgTest)
 
     cv2.waitKey(0)
+
+def generate_encodings(directory):
+    '''
+    Given a directory path, returns a list of the encodings and names of the directory.
+    '''
+    encodings, names = [], []
+    for filename in os.listdir(directory):
+        f = os.path.join(directory, filename)
+        if os.path.isfile(f):
+            print(names)
+            _, enc, _ = find_face(fr.load_image_file(f))
+            encodings.append(enc)
+            names.append(filename.split('.')[0])
+    return encodings, names
 
 def has_face(img):
     '''
